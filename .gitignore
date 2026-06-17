@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch
+*.pth
+*.pt
+
+# Data & Output directories
+data/
+checkpoints/
+logs/
+results/
+
+# OS
+.DS_Store
+Thumbs.db

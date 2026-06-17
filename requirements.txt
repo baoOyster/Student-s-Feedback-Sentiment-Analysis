@@ -1,0 +1,9 @@
+torch
+torchvision
+torchaudio
+pandas
+pyarrow
+fastparquet
+scikit-learn
+matplotlib
+seaborn
