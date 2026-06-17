@@ -10,8 +10,6 @@ __pycache__/
 # Data & Output directories
 data/
 checkpoints/
-logs/
-results/
 
 # OS
 .DS_Store
