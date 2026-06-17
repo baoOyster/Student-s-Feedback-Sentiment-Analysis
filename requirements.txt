@@ -1,4 +1,5 @@
 torch
+torchinfo
 torchvision
 torchaudio
 pandas

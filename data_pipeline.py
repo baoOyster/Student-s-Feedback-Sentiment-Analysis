@@ -168,7 +168,9 @@ def prepare_datasets():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
     
-    return train_loader, val_loader, test_loader, word_to_idx
+    y_train = train_df['sentiment'].values
+
+    return train_loader, val_loader, test_loader, word_to_idx, y_train
 
 
 # ---------------------------------------------------------------------------
@@ -176,7 +178,7 @@ def prepare_datasets():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    train_loader, val_loader, test_loader, word_to_idx = prepare_datasets()
+    train_loader, val_loader, test_loader, word_to_idx, y_train = prepare_datasets()
     
     print("\n--- Testing the DataLoader ---")
     sample_inputs, sample_labels = next(iter(train_loader))

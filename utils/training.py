@@ -8,10 +8,9 @@ import csv
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from config import CHECKPOINT_DIR, LOG_DIR, EPOCHS, PATIENCE, LEARNING_RATE, DEVICE
 
-from config import CHECKPOINT_DIR, LOG_DIR, EPOCHS, LEARNING_RATE, DEVICE
-
-def train_model(model, train_loader, val_loader, model_name):
+def train_model(model, train_loader, val_loader, model_name, class_weights=None):
     """Generic PyTorch training loop for RNN/LSTM models.
     
     Logs to CSV and saves the best model checkpoint.
@@ -28,7 +27,12 @@ def train_model(model, train_loader, val_loader, model_name):
     log_file = os.path.join(LOG_DIR, f"{model_name}_training_log.csv")
     best_model_path = os.path.join(ckpt_dir, "best_model.pt")
     
-    criterion = nn.CrossEntropyLoss()
+    if class_weights is not None:
+        class_weights = class_weights.to(DEVICE)
+        criterion = nn.CrossEntropyLoss(weight=class_weights)
+    else:
+        criterion = nn.CrossEntropyLoss()
+    
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
     history = {
@@ -39,6 +43,7 @@ def train_model(model, train_loader, val_loader, model_name):
     }
     
     best_val_acc = 0.0
+    epochs_no_improve = 0
     
     print(f"Starting Training Loop for {model_name} on {DEVICE}...\n")
     
@@ -47,6 +52,8 @@ def train_model(model, train_loader, val_loader, model_name):
         writer = csv.writer(f)
         writer.writerow(['epoch', 'loss', 'accuracy', 'val_loss', 'val_accuracy'])
     
+    print(f"Training for {EPOCHS} epochs with patience {PATIENCE}...\n")
+
     for epoch in range(EPOCHS):
         # --- Training Phase ---
         model.train()
@@ -112,8 +119,18 @@ def train_model(model, train_loader, val_loader, model_name):
         # Checkpoint saving
         if val_acc > best_val_acc:
             best_val_acc = val_acc
+            epochs_no_improve = 0
             print(f"--> Validation accuracy improved. Saving model to {best_model_path}")
             torch.save(model.state_dict(), best_model_path)
+        else:
+            epochs_no_improve += 1
+            print(f"--> No improvement in validation accuracy for {epochs_no_improve} epochs.")
+            if epochs_no_improve >= PATIENCE:
+                print(f"\nEarly stopping triggered after {epoch+1} epochs!")
+                if os.path.exists(best_model_path):
+                    print("Restoring best model weights...")
+                    model.load_state_dict(torch.load(best_model_path, weights_only=True))
+                break
             
     print("\nTraining Complete!")
     return history

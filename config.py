@@ -34,7 +34,8 @@ BATCH_SIZE    = 32
 EMBEDDING_DIM = 100
 HIDDEN_DIM    = 128
 OUTPUT_DIM    = 3 # 3 classes: Negative (0), Neutral (1), Positive (2)
-EPOCHS        = 5
+EPOCHS        = 100
+PATIENCE      = 10
 LEARNING_RATE = 0.001
 
 SENTIMENT_MAP = {
