@@ -119,3 +119,6 @@ One of the largest performance jumps occurred when adding gradient clipping (`gr
 
 ### Vanilla RNN vs. LSTM
 Traditionally, LSTMs heavily outperform vanilla RNNs on long sequence tasks because their gating mechanisms explicitly fight vanishing gradients. However, by incorporating **Residual Connections**, **Layer Normalization**, and **Gradient Clipping**, our optimized vanilla RNN (`train_rnn_4.py` at 88.44%) performs functionally identically to the LSTM counterpart (`train_lstm.py` at 88.41%). The structural additions mitigated the standard shortcomings of plain RNNs.
+
+> [!NOTE]
+> **Sequence Length Limitation:** It is important to note that the models were trained and evaluated on sentences capped at a maximum length of 25 words (`MAX_LEN = 25`). Because the sequences are relatively short, the LSTM is not able to reach its full capability in demonstrating long-term memory retention. On longer documents, the LSTM would likely outperform the residual RNN more noticeably.
