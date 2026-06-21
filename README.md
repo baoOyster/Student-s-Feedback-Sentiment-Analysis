@@ -2,8 +2,8 @@
 
 This project analyzes student feedback using deep learning models built with PyTorch. It predicts sentiment across three classes: **Negative (0)**, **Neutral (1)**, and **Positive (2)**.
 
-> [!WARNING]
-> **Deprecated Model**: The `train_lstm.py` script is currently deprecated. Please do **NOT** run the LSTM model. The project has shifted to using a custom deep residual RNN architecture, and the LSTM file has not been updated to reflect the new pipeline matrix. Use `train_rnn.py` instead.
+> [!NOTE]
+> **Architecture Deep Dive:** For a detailed look at the evolution of our models, including performance metrics across different normalization and recurrent unit strategies (RNN vs LSTM), please see [ABOUT.md](./ABOUT.md).
 
 ## Project Structure
 
