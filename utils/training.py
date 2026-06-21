@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.optim as optim
 from config import CHECKPOINT_DIR, LOG_DIR, EPOCHS, PATIENCE, LEARNING_RATE, DEVICE
 
-def train_model(model, train_loader, val_loader, model_name, class_weights=None):
+def train_model(model, train_loader, val_loader, model_name, class_weights=None, grad_clip=None, learning_rate=LEARNING_RATE):
     """Generic PyTorch training loop for RNN/LSTM models.
     
     Logs to CSV and saves the best model checkpoint.
@@ -33,7 +33,7 @@ def train_model(model, train_loader, val_loader, model_name, class_weights=None)
     else:
         criterion = nn.CrossEntropyLoss()
     
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     
     history = {
         'loss': [],
@@ -67,6 +67,9 @@ def train_model(model, train_loader, val_loader, model_name, class_weights=None)
             predictions = model(inputs)
             loss = criterion(predictions, labels)
             loss.backward()
+
+            if grad_clip is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
             
             try:
                 # Update weights for TPU if present

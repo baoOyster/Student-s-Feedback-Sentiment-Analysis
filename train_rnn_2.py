@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Sentiment Analysis RNN/LSTM — Train Custom Deep Res LSTM 
-with layer normalization and add gradient clipping
-MAX_LEN = 25
+Sentiment Analysis RNN/LSTM — Train Custom Deep Res RNN 
+with layer normalization
 
 Usage::
 
-    python train_lstm.py
+    python train_rnn_2.py
 """
 
 import torch
@@ -25,45 +24,45 @@ from utils import train_model, evaluate_model, predict_sentiment, plot_training_
 # 1. Model Definition
 # ---------------------------------------------------------------------------
 
-class CustomDeepResLSTM(nn.Module):
+class CustomDeepResRNN_2(nn.Module):
   def __init__(self, vocab_size, num_classes=3):
-    super(CustomDeepResLSTM, self).__init__()
+    super(CustomDeepResRNN_2, self).__init__()
 
     self.embedding = nn.Embedding(vocab_size, 100, padding_idx=0)
     
     # --- INITIAL LAYERS ---
-    self.lstm1 = nn.LSTM(100, 32, batch_first=True)
+    self.rnn1 = nn.RNN(100, 32, batch_first=True)
     self.ln1 = nn.LayerNorm(32)
 
-    self.lstm2 = nn.LSTM(32, 32, batch_first=True)
+    self.rnn2 = nn.RNN(32, 32, batch_first=True)
     self.ln2 = nn.LayerNorm(32)
 
-    self.lstm3 = nn.LSTM(32, 24, batch_first=True)
+    self.rnn3 = nn.RNN(32, 24, batch_first=True)
 
     # --- RESIDUAL BLOCK 1 ---
-    self.b2_lstm1 = nn.LSTM(24, 40, batch_first=True)
+    self.b2_rnn1 = nn.RNN(24, 40, batch_first=True)
     self.b2_ln1 = nn.LayerNorm(40)
 
-    self.b2_lstm2 = nn.LSTM(40, 40, batch_first=True)
+    self.b2_rnn2 = nn.RNN(40, 40, batch_first=True)
     self.b2_ln2 = nn.LayerNorm(40)
 
     # Switched to Linear for sequential feature projection!
     self.skip = nn.Linear(24, 40)
 
     # --- RESIDUAL BLOCK 2 ---
-    self.b3_lstm1 = nn.LSTM(40, 80, batch_first=True)
+    self.b3_rnn1 = nn.RNN(40, 80, batch_first=True)
     self.b3_ln1 = nn.LayerNorm(80)
 
-    self.b3_lstm2 = nn.LSTM(80, 80, batch_first=True)
+    self.b3_rnn2 = nn.RNN(80, 80, batch_first=True)
     self.b3_ln2 = nn.LayerNorm(80)
 
     self.skip2 = nn.Linear(24, 80)
 
-    # --- FINAL LSTM LAYERS ---
-    self.lstm4 = nn.LSTM(80, 112, batch_first=True)
+    # --- FINAL RNN LAYERS ---
+    self.rnn4 = nn.RNN(80, 112, batch_first=True)
     self.ln4 = nn.LayerNorm(112)
 
-    self.lstm5 = nn.LSTM(112, 112, batch_first=True)
+    self.rnn5 = nn.RNN(112, 112, batch_first=True)
     self.ln5 = nn.LayerNorm(112)
 
     # --- DENSE CLASSIFIER HEAD ---
@@ -81,43 +80,43 @@ class CustomDeepResLSTM(nn.Module):
     x = self.embedding(x)
 
     # --- INITIAL SEQUENTIAL PROCESSING ---
-    x, _ = self.lstm1(x)
+    x, _ = self.rnn1(x)
     x = F.relu(self.ln1(x))
 
-    x, _ = self.lstm2(x)
+    x, _ = self.rnn2(x)
     x = F.relu(self.ln2(x))
 
-    x, _ = self.lstm3(x)
+    x, _ = self.rnn3(x)
 
     # Cache shortcuts (No permuting needed anymore!)
     shortcut = x
     shortcut_1 = x
 
     # --- RESIDUAL BLOCK 1 ---
-    x_b2, _ = self.b2_lstm1(x)
+    x_b2, _ = self.b2_rnn1(x)
     x_b2 = F.relu(self.b2_ln1(x_b2))
 
-    x_b2, _ = self.b2_lstm2(x_b2)
+    x_b2, _ = self.b2_rnn2(x_b2)
     x_b2 = self.b2_ln2(x_b2)
 
     s1 = self.skip(shortcut)
     x = F.relu(x_b2 + s1)
 
     # --- RESIDUAL BLOCK 2 ---
-    x_b3, _ = self.b3_lstm1(x)
+    x_b3, _ = self.b3_rnn1(x)
     x_b3 = F.relu(self.b3_ln1(x_b3))
 
-    x_b3, _ = self.b3_lstm2(x_b3)
+    x_b3, _ = self.b3_rnn2(x_b3)
     x_b3 = self.b3_ln2(x_b3)
 
     s2 = self.skip2(shortcut_1)
     x = F.relu(x_b3 + s2)
 
     # --- FINAL PROCESSING LAYERS ---
-    x, _ = self.lstm4(x)
+    x, _ = self.rnn4(x)
     x = F.relu(self.ln4(x))
 
-    x, _ = self.lstm5(x)
+    x, _ = self.rnn5(x)
     x = F.relu(self.ln5(x))
 
     # --- GLOBAL MAX POOLING ---
@@ -144,7 +143,7 @@ class CustomDeepResLSTM(nn.Module):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-  MODEL_NAME = "custom_deep_res_lstm"
+  MODEL_NAME = "custom_deep_res_rnn_2"
 
   # --- Data ---
   train_loader, val_loader, test_loader, word_to_idx, y_train = prepare_datasets()
@@ -162,7 +161,7 @@ if __name__ == "__main__":
 
   # --- Build ---
   VOCAB_SIZE = len(word_to_idx)
-  model = CustomDeepResLSTM(vocab_size=VOCAB_SIZE, num_classes=OUTPUT_DIM)
+  model = CustomDeepResRNN_2(vocab_size=VOCAB_SIZE, num_classes=OUTPUT_DIM)
   model = model.to(DEVICE)
     
   # View the explicit pipeline matrix
@@ -176,8 +175,7 @@ if __name__ == "__main__":
     train_loader = train_loader, 
     val_loader = val_loader, 
     model_name = MODEL_NAME,
-    class_weights = class_weights_tensor,
-    grad_clip = 1.0
+    class_weights = class_weights_tensor
   )
     
   # --- Results & Evaluation ---

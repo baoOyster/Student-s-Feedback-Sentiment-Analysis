@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Sentiment Analysis RNN/LSTM — Train Custom Deep Res RNN
-with batch normalization
+with batch normalization and gradient clipping
 
 Usage::
 
@@ -24,9 +24,9 @@ from utils import train_model, evaluate_model, predict_sentiment, plot_training_
 # 1. Model Definition
 # ---------------------------------------------------------------------------
 
-class CustomDeepResRNN(nn.Module):
+class CustomDeepResRNN_3(nn.Module):
     def __init__(self, vocab_size, num_classes=3):
-        super(CustomDeepResRNN, self).__init__()
+        super(CustomDeepResRNN_3, self).__init__()
         
         # --- INITIAL LAYERS ---
         # Instead of rescaling pixels, we embed input token IDs to 100-dim vectors
@@ -160,7 +160,7 @@ class CustomDeepResRNN(nn.Module):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    MODEL_NAME = "custom_deep_res_rnn"
+    MODEL_NAME = "custom_deep_res_rnn_3"
     
     # --- Data ---
     train_loader, val_loader, test_loader, word_to_idx, y_train = prepare_datasets()
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     # --- Build ---
     VOCAB_SIZE = len(word_to_idx)
-    model = CustomDeepResRNN(vocab_size=VOCAB_SIZE, num_classes=OUTPUT_DIM)
+    model = CustomDeepResRNN_3(vocab_size=VOCAB_SIZE, num_classes=OUTPUT_DIM)
     model = model.to(DEVICE)
     
     # View the explicit pipeline matrix
@@ -192,7 +192,8 @@ if __name__ == "__main__":
         train_loader = train_loader, 
         val_loader = val_loader, 
         model_name = MODEL_NAME,
-        class_weights = class_weights_tensor
+        class_weights = class_weights_tensor,
+        grad_clip = 1.0
     )
     
     # --- Results & Evaluation ---
